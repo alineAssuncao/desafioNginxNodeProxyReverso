@@ -1,0 +1,43 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - node
+    networks:
+      - proxyreverse-network
+
+  node:
+    build: ./node
+    container_name: app
+    volumes:
+      - ./node:/usr/src/app
+    environment:
+      - DB_HOST=mysql
+      - DB_PASSWORD=root
+      - DB_NAME=people
+    depends_on:
+      - mysql
+    networks:
+      - proxyreverse-network
+
+  mysql:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: people
+    volumes:
+      - ./mysql:/var/lib/mysql
+    networks:
+      - proxyreverse-network
+
+networks:
+    proxyreverse-network:
+      driver: bridge
