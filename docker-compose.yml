@@ -15,13 +15,15 @@ services:
     build: ./node
     container_name: app
     volumes:
-      - ./node:/usr/src/app
+      - ./node:/usr/src/app      
+      - /usr/src/app/node_modules
     environment:
       - DB_HOST=mysql
       - DB_PASSWORD=root
       - DB_NAME=people
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - proxyreverse-network
 
@@ -33,6 +35,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: people
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./mysql:/var/lib/mysql
     networks:
